@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "站点密码填充器 (Site Password Filler) - 按精确站点匹配填充账号密码",
   "scripts": {
-    "generate-icons": "node generate-icons.js",
+    "generate-icons": "node scripts/generate-minimal-icons.js",
     "pack": "crx3 pack . -o dist/"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.3"
   },
   "keywords": [
     "chrome-extension",

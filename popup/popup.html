@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>站点密码填充器</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>站点密码填充器</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="current">当前网站</button>
+      <button class="tab-btn" data-tab="all">全部密码</button>
+      <button class="tab-btn" data-tab="blocked">屏蔽规则</button>
+    </div>
+
+    <!-- 当前网站标签页 -->
+    <div id="current" class="tab-content active">
+      <div class="current-hostname" id="currentHostname"></div>
+      <div class="current-pathname" id="currentPathname"></div>
+
+      <div id="siteBlockBanner" class="site-block-banner hidden">
+        <p>此网站已在屏蔽列表中，所有页面都不会自动弹出填充面板。</p>
+        <button type="button" id="unblockCurrentBtn" class="btn-unblock">取消整站屏蔽</button>
+      </div>
+      <div id="pageBlockBanner" class="site-block-banner page-block-banner hidden">
+        <p>当前页面已在屏蔽列表中，不会自动弹出填充面板。</p>
+        <button type="button" id="unblockCurrentPageBtn" class="btn-unblock">取消页面屏蔽</button>
+      </div>
+      <div id="siteBlockActions" class="site-block-actions">
+        <button type="button" id="blockCurrentPageBtn" class="btn-block-page">屏蔽当前页面</button>
+        <button type="button" id="blockCurrentPagePrefixBtn" class="btn-block-page-sub">屏蔽当前路径及子页面</button>
+        <button type="button" id="blockCurrentBtn" class="btn-block-site">屏蔽整个网站</button>
+      </div>
+
+      <div class="add-form">
+        <h3>添加账号</h3>
+        <input type="text" id="addUsername" placeholder="用户名" />
+        <input type="password" id="addPassword" placeholder="密码" />
+        <input type="text" id="addLabel" placeholder="标签（可选）" />
+        <button id="addBtn" class="btn-primary">保存</button>
+      </div>
+
+      <div class="password-list" id="currentPasswordList">
+        <p class="empty-message">该网站暂无保存的账号</p>
+      </div>
+    </div>
+
+    <!-- 全部密码标签页 -->
+    <div id="all" class="tab-content">
+      <div class="import-export-bar">
+        <p class="import-export-hint">导出 JSON 备份，或导入 JSON 备份 / Chrome 密码管理器导出的 CSV。文件含明文密码，请妥善保管，勿上传到公共位置。</p>
+        <div class="import-export-actions">
+          <button type="button" id="exportBtn" class="btn-secondary">导出</button>
+          <button type="button" id="importBtn" class="btn-secondary">导入</button>
+          <input type="file" id="importFileInput" accept=".json,.csv,application/json,text/csv" hidden />
+        </div>
+      </div>
+      <div id="searchBar" class="search-bar hidden">
+        <input type="text" id="searchInput" placeholder="搜索站点、账号或密码..." />
+        <button type="button" id="clearSearchBtn" class="btn-clear-search" title="清除搜索">&times;</button>
+      </div>
+      <div id="batchToolbar" class="batch-toolbar hidden">
+        <div class="batch-toolbar-actions">
+          <button type="button" id="selectAllBtn" class="btn-batch">全选</button>
+          <button type="button" id="invertSelectBtn" class="btn-batch">反选</button>
+          <button type="button" id="batchDeleteBtn" class="btn-batch-delete" disabled>删除选中</button>
+        </div>
+        <span id="batchSelectCount" class="batch-select-count"></span>
+      </div>
+      <div class="password-list" id="allPasswordList">
+        <p class="empty-message">暂无保存的账号密码</p>
+      </div>
+    </div>
+
+    <!-- 屏蔽规则标签页 -->
+    <div id="blocked" class="tab-content">
+      <p class="blocked-hint">可按整站或页面路径屏蔽自动填充。整站屏蔽优先级更高；页面屏蔽仅对匹配路径生效，登录页等其它页面仍可填充。</p>
+
+      <h3 class="blocked-section-title">整站屏蔽</h3>
+      <div class="blocked-add-row">
+        <input type="text" id="addBlockedHost" placeholder="例如：example.com" />
+        <button type="button" id="addBlockedBtn" class="btn-secondary">添加</button>
+      </div>
+      <div class="blocked-host-list" id="blockedHostList">
+        <p class="empty-message">暂无整站屏蔽</p>
+      </div>
+
+      <h3 class="blocked-section-title">页面路径屏蔽</h3>
+      <div class="blocked-path-add">
+        <input type="text" id="addBlockedPathHost" placeholder="域名，例如 dev-upms.ai.qingyao.link" />
+        <input type="text" id="addBlockedPath" placeholder="路径，例如 /system/model/index" />
+        <div class="blocked-path-add-actions">
+          <label class="blocked-path-prefix-label">
+            <input type="checkbox" id="addBlockedPathPrefix" />
+            同时屏蔽子路径
+          </label>
+          <button type="button" id="addBlockedPathBtn" class="btn-secondary">添加</button>
+        </div>
+      </div>
+      <div class="blocked-host-list" id="blockedPathList">
+        <p class="empty-message">暂无页面路径屏蔽</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑/复制密码模态框 -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">编辑账号</h2>
+        <button class="btn-close" id="closeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="editHostnameRow" class="modal-field hidden">
+          <label for="editHostname">站点</label>
+          <input type="text" id="editHostname" placeholder="例如：dev-upms.example.com" />
+          <p class="modal-field-hint">可修改为目标站点，便于跨环境复制</p>
+        </div>
+        <input type="text" id="editUsername" placeholder="用户名" />
+        <div class="password-field">
+          <input type="password" id="editPassword" placeholder="密码" />
+          <button type="button" class="btn-toggle-password" id="togglePasswordBtn" title="查看密码">👁️</button>
+        </div>
+        <input type="text" id="editLabel" placeholder="标签（可选）" />
+      </div>
+      <div class="modal-footer">
+        <button id="cancelEditBtn" class="btn-secondary">取消</button>
+        <button id="saveEditBtn" class="btn-primary" data-mode="edit">保存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../site-key.js"></script>
+  <script src="../import-parse.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

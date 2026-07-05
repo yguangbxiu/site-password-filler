@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "站点密码填充器"
+  },
+  "extDescription": {
+    "message": "按精确站点匹配，自动填充不同网站的账号密码"
+  }
+}

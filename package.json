@@ -1,0 +1,16 @@
+{
+  "name": "chrome-password-filler",
+  "version": "1.0.0",
+  "description": "站点密码填充器 (Site Password Filler) - 按精确站点匹配填充账号密码",
+  "scripts": {
+    "generate-icons": "node generate-icons.js",
+    "pack": "crx3 pack . -o dist/"
+  },
+  "keywords": [
+    "chrome-extension",
+    "password-manager",
+    "auto-fill"
+  ],
+  "author": "",
+  "license": "MIT"
+}

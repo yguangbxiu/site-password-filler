@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "Site Password Filler"
+  },
+  "extDescription": {
+    "message": "Fill login credentials by exact site — keeps dev, staging, and prod accounts separate"
+  }
+}

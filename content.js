@@ -266,6 +266,7 @@ function showPasswordModal_Empty(inputEl, sessionId = modalSessionId) {
 
   title.appendChild(titleText);
   title.appendChild(closeBtn);
+  enableModalDrag(modalEl, title);
 
   // 表单
   const form = document.createElement('div');
@@ -385,13 +386,55 @@ function positionModal(inputEl) {
   if (!passwordModal) return;
 
   const rect = inputEl.getBoundingClientRect();
-  const scrollTop = window.scrollY;
-  const scrollLeft = window.scrollX;
 
   passwordModal.style.position = 'fixed';
-  passwordModal.style.top = (rect.bottom + scrollTop) + 'px';
-  passwordModal.style.left = (rect.left + scrollLeft) + 'px';
+  passwordModal.style.top = rect.bottom + 'px';
+  passwordModal.style.left = rect.left + 'px';
   passwordModal.style.width = rect.width + 'px';
+}
+
+// 让快速添加面板可通过标题栏拖动，避免遮住页面上的输入框
+function enableModalDrag(modalEl, dragHandle) {
+  let startPointerX = 0;
+  let startPointerY = 0;
+  let startModalLeft = 0;
+  let startModalTop = 0;
+
+  dragHandle.addEventListener('pointerdown', (e) => {
+    // 关闭按钮仍保持普通按钮行为，不会触发拖动。
+    if (e.button !== 0 || e.target.closest('button, input, a, select, textarea')) return;
+
+    const rect = modalEl.getBoundingClientRect();
+    startPointerX = e.clientX;
+    startPointerY = e.clientY;
+    startModalLeft = rect.left;
+    startModalTop = rect.top;
+    dragHandle.setPointerCapture(e.pointerId);
+    dragHandle.classList.add('pw-filler-quick-add-title-dragging');
+    e.preventDefault();
+  });
+
+  dragHandle.addEventListener('pointermove', (e) => {
+    if (!dragHandle.hasPointerCapture(e.pointerId)) return;
+
+    const rect = modalEl.getBoundingClientRect();
+    const maxLeft = Math.max(0, window.innerWidth - rect.width);
+    const maxTop = Math.max(0, window.innerHeight - rect.height);
+    const nextLeft = Math.min(maxLeft, Math.max(0, startModalLeft + e.clientX - startPointerX));
+    const nextTop = Math.min(maxTop, Math.max(0, startModalTop + e.clientY - startPointerY));
+
+    modalEl.style.left = nextLeft + 'px';
+    modalEl.style.top = nextTop + 'px';
+  });
+
+  const stopDragging = (e) => {
+    if (dragHandle.hasPointerCapture(e.pointerId)) {
+      dragHandle.releasePointerCapture(e.pointerId);
+    }
+    dragHandle.classList.remove('pw-filler-quick-add-title-dragging');
+  };
+  dragHandle.addEventListener('pointerup', stopDragging);
+  dragHandle.addEventListener('pointercancel', stopDragging);
 }
 
 // 打开密码管理器（popup）

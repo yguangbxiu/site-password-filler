@@ -159,6 +159,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.pw-filler-quick-add-title-dragging {
+  cursor: grabbing;
 }
 
 .pw-filler-quick-add-title-text {
@@ -181,6 +188,7 @@
   cursor: pointer;
   padding: 0 2px;
   flex-shrink: 0;
+  touch-action: manipulation;
 }
 
 .pw-filler-quick-add-close:hover {

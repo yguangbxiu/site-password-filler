@@ -15,6 +15,7 @@ body {
   width: 400px;
   max-height: 600px;
   overflow-y: auto;
+  overflow-x: hidden;
   background: white;
 }
 
@@ -74,6 +75,7 @@ body {
   background: #f9f9f9;
   padding: 10px;
   border-radius: 4px;
+  overflow-wrap: anywhere;
 }
 
 .add-form {
@@ -131,6 +133,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
 
 .empty-message {
@@ -149,10 +152,12 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
+  min-width: 0;
 }
 
 .password-info {
   flex: 1;
+  min-width: 0;
   font-size: 12px;
 }
 
@@ -160,7 +165,7 @@ body {
   font-weight: 600;
   color: #333;
   margin-bottom: 4px;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .password-username,
@@ -168,11 +173,12 @@ body {
 .password-pwd-masked {
   color: #666;
   margin-bottom: 3px;
+  overflow-wrap: anywhere;
 }
 
 .password-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -180,7 +186,7 @@ body {
 .btn-duplicate,
 .btn-delete,
 .btn-edit {
-  padding: 6px 10px;
+  padding: 6px 8px;
   border: none;
   border-radius: 3px;
   cursor: pointer;
@@ -470,6 +476,124 @@ body {
 
 .btn-clear-search:hover {
   background: #e0e0e0;
+  color: #333;
+}
+
+/* 条件筛选面板：站点 / 账号 / 密码 */
+.filter-panel {
+  margin-bottom: 12px;
+  padding: 8px 10px 10px;
+  background: #f9f9f9;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.filter-panel.hidden {
+  display: none;
+}
+
+.filter-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-panel-title {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+}
+
+.filter-result-count {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filter-panel-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.btn-filter-action {
+  padding: 3px 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background: white;
+  color: #666;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-filter-action:hover {
+  border-color: #c5cae9;
+  background: #eef1ff;
+  color: #667eea;
+}
+
+.filter-rows.collapsed {
+  display: none;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.filter-label {
+  flex-shrink: 0;
+  width: 28px;
+  font-size: 11px;
+  color: #888;
+}
+
+.filter-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.filter-row input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.btn-clear-filter {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: #e6e6e6;
+  color: #666;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.filter-row input:not(:placeholder-shown) ~ .btn-clear-filter {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.btn-clear-filter:hover {
+  background: #d5d5d5;
   color: #333;
 }
 

@@ -403,34 +403,77 @@ function loadAllPasswords() {
   );
 }
 
-function matchesPasswordSearch(item, query) {
-  if (!query) return true;
-  const q = query.toLowerCase();
-  const fields = [item.hostname, item.username, item.password, item.label || ''];
-  return fields.some((field) => field.toLowerCase().includes(q));
+const SEARCH_FILTER_IDS = ['filterHost', 'filterUsername', 'filterPassword'];
+
+// 读取某个条件输入框的值（去首尾空格）
+function getSearchFilterValue(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+// 拆分关键词：空格分隔的多个词之间是“并且”关系
+function splitSearchTokens(value) {
+  return value.toLowerCase().split(/\s+/).filter(Boolean);
+}
+
+// 目标文本需包含全部关键词
+function includesAllTokens(haystack, tokens) {
+  if (tokens.length === 0) return true;
+  const target = String(haystack == null ? '' : haystack).toLowerCase();
+  return tokens.every((token) => target.includes(token));
+}
+
+// 单条记录是否命中：全局关键词 + 站点/账号/密码三个条件同时满足
+function matchesPasswordSearch(item, queryTokens, filters) {
+  const haystack = [item.hostname, item.username, item.password, item.label || ''].join('\n');
+  if (!includesAllTokens(haystack, queryTokens)) return false;
+  if (!includesAllTokens(item.hostname, filters.hostname)) return false;
+  if (!includesAllTokens(item.username, filters.username)) return false;
+  if (!includesAllTokens(item.password, filters.password)) return false;
+  return true;
+}
+
+function updateFilterResultCount(matchedCount) {
+  document.getElementById('filterResultCount').textContent =
+    `命中 ${matchedCount} / 共 ${allPasswordItems.length}`;
 }
 
 function renderAllPasswordList() {
   const list = document.getElementById('allPasswordList');
   const batchToolbar = document.getElementById('batchToolbar');
   const searchBar = document.getElementById('searchBar');
-  const query = document.getElementById('searchInput').value.trim();
+  const filterPanel = document.getElementById('filterPanel');
+  const queryTokens = splitSearchTokens(document.getElementById('searchInput').value);
+  const filters = {
+    hostname: splitSearchTokens(getSearchFilterValue('filterHost')),
+    username: splitSearchTokens(getSearchFilterValue('filterUsername')),
+    password: splitSearchTokens(getSearchFilterValue('filterPassword'))
+  };
   list.innerHTML = '';
 
   if (allPasswordItems.length === 0) {
     batchToolbar.classList.add('hidden');
     searchBar.classList.add('hidden');
+    filterPanel.classList.add('hidden');
     list.innerHTML = '<p class="empty-message">暂无保存的账号密码</p>';
     return;
   }
 
   searchBar.classList.remove('hidden');
+  filterPanel.classList.remove('hidden');
   batchToolbar.classList.remove('hidden');
 
-  const filtered = allPasswordItems.filter((item) => matchesPasswordSearch(item, query));
+  const filtered = allPasswordItems.filter((item) => matchesPasswordSearch(item, queryTokens, filters));
+  updateFilterResultCount(filtered.length);
 
   if (filtered.length === 0) {
-    list.innerHTML = '<p class="empty-message">未找到匹配的账号密码</p>';
+    const hasCondition = queryTokens.length > 0
+      || filters.hostname.length > 0
+      || filters.username.length > 0
+      || filters.password.length > 0;
+    list.innerHTML = hasCondition
+      ? '<p class="empty-message">未找到匹配的账号密码，请调整或清空搜索条件</p>'
+      : '<p class="empty-message">未找到匹配的账号密码</p>';
   } else {
     filtered.forEach((item) => {
       const itemEl = createPasswordItem(item, item.hostname, { batchMode: true });
@@ -438,6 +481,15 @@ function renderAllPasswordList() {
     });
   }
   updateBatchSelectionUI();
+}
+
+// 清空全部搜索条件（全局关键词 + 站点/账号/密码）
+function clearAllSearchConditions() {
+  document.getElementById('searchInput').value = '';
+  SEARCH_FILTER_IDS.forEach((id) => {
+    document.getElementById(id).value = '';
+  });
+  renderAllPasswordList();
 }
 
 function getBatchCheckboxes() {
@@ -500,6 +552,37 @@ document.getElementById('clearSearchBtn').addEventListener('click', () => {
   document.getElementById('searchInput').value = '';
   renderAllPasswordList();
   document.getElementById('searchInput').focus();
+});
+
+// 站点 / 账号 / 密码三个条件输入框
+SEARCH_FILTER_IDS.forEach((id) => {
+  const input = document.getElementById(id);
+  input.addEventListener('input', renderAllPasswordList);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && input.value) {
+      input.value = '';
+      renderAllPasswordList();
+    }
+  });
+});
+
+// 每个条件输入框右侧的清除按钮
+document.querySelectorAll('.btn-clear-filter').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.target);
+    input.value = '';
+    renderAllPasswordList();
+    input.focus();
+  });
+});
+
+document.getElementById('clearFiltersBtn').addEventListener('click', clearAllSearchConditions);
+
+// 收起 / 展开条件筛选面板
+document.getElementById('toggleFilterPanelBtn').addEventListener('click', (e) => {
+  const collapsed = document.getElementById('filterRows').classList.toggle('collapsed');
+  e.target.textContent = collapsed ? '展开' : '收起';
+  e.target.setAttribute('aria-expanded', String(!collapsed));
 });
 
 // 创建密码列表项 DOM
